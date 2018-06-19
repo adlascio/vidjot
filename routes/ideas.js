@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
-const {ensureAuthenticated} = require('../helpers/auth');
+const { ensureAuthenticated } = require('../helpers/auth');
 
 //Load Idea Model
 require('../models/Idea');
@@ -9,7 +9,7 @@ const Idea = mongoose.model('ideas');
 
 //Idea Index Page
 router.get('/', ensureAuthenticated, (request, response) => {
-  Idea.find({})
+  Idea.find({ user: request.user.id })
     .sort({ date: 'desc' })
     .then(ideas => {
       response.render('ideas/index', {
@@ -29,9 +29,14 @@ router.get('/edit/:id', ensureAuthenticated, (request, response) => {
     _id: request.params.id
   })
     .then(idea => {
-      response.render('ideas/edit', {
-        idea: idea
-      });
+      if (idea.user !== request.user.id) {
+        request.flash('error_msg', 'Not authorized.');
+        response.redirect('/ideas');
+      } else {
+        response.render('ideas/edit', {
+          idea: idea
+        });
+      }
     });
 });
 
