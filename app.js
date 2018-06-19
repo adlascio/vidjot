@@ -5,6 +5,7 @@ const methodOverride = require('method-override');
 const flash = require('connect-flash');
 const session = require('express-session');
 const bodyParser = require('body-parser');
+const passport = require('passport');
 const mongoose = require('mongoose');
 
 
@@ -13,6 +14,9 @@ const app = express();
 //Load routes
 const ideas = require('./routes/ideas');
 const users = require('./routes/users');
+
+//Passport config
+require('./config/passport')(passport);
 
 //Map global promise - get rid of warning
 //mongoose.Promise = global.Promise;
@@ -48,6 +52,10 @@ app.use(session({
   saveUninitialized: true
 }));
 
+// Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use(flash());
 
 //Global variables
@@ -55,6 +63,7 @@ app.use(function(request, response, next){
   response.locals.success_msg = request.flash('success_msg');
   response.locals.error_msg = request.flash('error_msg');
   response.locals.error = request.flash('error');
+  response.locals.user = request.user || null;
   next();
 });
 
